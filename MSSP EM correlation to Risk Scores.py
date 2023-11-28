@@ -26,7 +26,6 @@ import os.path
 import sys
 import tkinter
 import tkinter.filedialog as fd
-import os
 
 
 #CMS Public Use Files prior to 2021 are currently unavailable
@@ -63,6 +62,7 @@ if fileCheck == False:
     else:
         exit(1)
 
+#Grabbing the 2022 and 2021 data from the CMS API
 d={}
 for i in range(0,len(APIs)):
     response = requests.get(APIs[i])
@@ -76,7 +76,7 @@ for i in range(0,len(APIs)):
     else:
         print("unable to connect API or retrieve data.")
 
-
+#Importing the 2020 csv file
 df20 = pandas.read_csv(PUF_2020)
 df20 = df20.dropna(axis=1,how='all')
 d['Financial_Quality_20'] = pandas.DataFrame.from_dict(df20)
@@ -161,6 +161,7 @@ for i in range(0,len(xVars)):
     plt.ylabel("Change in AGND HCC Risk Score \n2021 to 2022")
     plt.show()
 
+#creating a dataframe to review the data behind the plots / results
 df_explore = result[['ACO_ID',
                      'ACO_Name',
                      'P_EM_Total_2021',
