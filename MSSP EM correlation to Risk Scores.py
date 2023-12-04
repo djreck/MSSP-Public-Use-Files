@@ -20,6 +20,7 @@ import glob
 import requests
 from pandas import json_normalize
 from sklearn.linear_model import LinearRegression
+import statsmodels.api as sma
 import locale
 from scipy import stats
 import os.path
@@ -31,7 +32,7 @@ import tkinter.filedialog as fd
 #CMS Public Use Files prior to 2021 are currently unavailable
 #Temporary solution: just bringing in the file from our drive. We'd downloaded this 2 years ago
 #There's a popup box for other users to supply thier own filepath
-PUF_2020 = "XX:/MSSP/Public Use Files/Trimmed PUFs/CSVs/2020_Shared_Savings_Program_PUF_TRIMMED.csv"
+PUF_2020 = "X:/MSSP/Public Use Files/Trimmed PUFs/CSVs/2020_Shared_Savings_Program_PUF_TRIMMED.csv"
 
 APIs = ['https://data.cms.gov/data-api/v1/dataset/73b2ce14-351d-40ac-90ba-ec9e1f5ba80c/data'
         ,'https://data.cms.gov/data-api/v1/dataset/bd6b766f-6fa3-43ae-8e9a-319da31dc374/data'
@@ -102,7 +103,9 @@ subset21 = df4[df4['ACO_ID'].isin(ACOs)]
 #Adding years as suffixes for prior years to maintain clear identification for columns
 subset20 = subset20.add_suffix('_2020')
 subset21 = subset21.add_suffix('_2021')
-result = pandas.concat([df5,subset21,subset20], axis = 1, join = "inner")
+result = pandas.DataFrame.merge(df5, right = subset21, how = "inner", left_on='ACO_ID',right_on='ACO_ID_2021')
+result = pandas.DataFrame.merge(result, right = subset20, how = "inner", left_on='ACO_ID',right_on='ACO_ID_2020')
+
 
 #cleaning EM and Risk Score fields for calculations
 result['P_EM_Total'] = result['P_EM_Total'].astype(float)
@@ -150,13 +153,15 @@ for i in range(0,len(xVars)):
     #plot of lm with formula
     plt.title("2022 MSSP ACOs\nAged Non-Dual HCC Risk Score Delta ('21 to '22) vs \nE&M Utilization Delta ('20 to '21)")
     plt.scatter(x,y)
+    plt.xlim([-1500,2500])
+    #plt.ylim([-0.3,0.3])
     plt.plot(x,y_pred, color = 'red')
     #plt.axhline(y=numpy.mean(y),linestyle = '--')
     #plt.annotate("Average: "+str(round(numpy.mean(y),4)),(8000,numpy.mean(y)))
     plt.axvline(x=numpy.mean(x),linestyle = '--')
-    plt.annotate("Average: "+str(round(numpy.mean(x),2)),(numpy.mean(x),-0.8))
-    plt.annotate("r-squared = "+str(round(r,4)),(3000,0.8))
-    plt.annotate("y = "+str(round(slope,6))+"x +"+str(round(intercept,2)),(3000,1.00))
+    plt.annotate("Average: "+str(round(numpy.mean(x),2)),(numpy.mean(x),-0.15))
+    plt.annotate("r-squared = "+str(round(r,4)),(1500,0.15))
+    plt.annotate("y = "+str(round(slope,6))+"x +"+str(round(intercept,2)),(1500,0.20))
     plt.xlabel("Change in "+r"$\bf{" + desc[i] + "}$" +" Visits per 1,000 \n2020 to 2021")
     plt.ylabel("Change in AGND HCC Risk Score \n2021 to 2022")
     plt.show()
